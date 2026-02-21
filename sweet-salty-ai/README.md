@@ -1,3 +1,7 @@
+## 서비스 링크
+https://www.sweet-salty-ai.life/
+
+---
 This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
 
 ## Getting Started
