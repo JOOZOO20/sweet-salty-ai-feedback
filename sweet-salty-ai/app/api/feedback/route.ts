@@ -71,7 +71,7 @@ export async function POST(req: NextRequest) {
     body: JSON.stringify({
       model: 'gpt-5.6-luna',
       input: prompt,
-      max_output_tokens: 600,
+      max_output_tokens: 2000,
       store: false,
       text: {
         format: {
@@ -100,6 +100,13 @@ export async function POST(req: NextRequest) {
   }
 
   const data = await response.json();
+
+  // 출력 토큰 한도에 걸리면 JSON이 중간에 잘려 파싱이 실패하므로 먼저 걸러낸다
+  if (data.status === 'incomplete') {
+    console.error('OpenAI incomplete:', data.incomplete_details);
+    return NextResponse.json({ error: 'AI 응답이 너무 길어 잘렸습니다. 활동 내용을 조금 줄여서 다시 시도해주세요.' }, { status: 502 });
+  }
+
   const raw = data.output
     ?.flatMap((item: { type?: string; content?: Array<{ type?: string; text?: string }> }) => item.content ?? [])
     .find((content: { type?: string }) => content.type === 'output_text')?.text;
