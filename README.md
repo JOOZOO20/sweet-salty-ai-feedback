@@ -19,7 +19,7 @@ In more detail:
 
 - Next.js 16 (App Router) + React 19
 - Tailwind CSS 4, lucide-react
-- OpenAI Responses API (GPT-5.6)
+- OpenAI Responses API (GPT-5.6 terra medium)
 - Deployed on Vercel
 
 ## Running Locally
