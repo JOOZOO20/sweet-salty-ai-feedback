@@ -1,15 +1,21 @@
 "use client";
 
 import React, { useState } from 'react';
-import { Heart, Flame, ChevronRight, RefreshCw, MessageCircle, Sparkles, Ghost } from 'lucide-react';
+import { Heart, Flame, ChevronRight, RefreshCw, MessageCircle, Sparkles, Ghost, Target } from 'lucide-react';
+
+const ROAST_LEVELS = [
+  { id: 'mild', label: '순한맛', description: '부드러운 팩트 체크' },
+  { id: 'medium', label: '적당한맛', description: '웃으며 뼈 때리기' },
+  { id: 'spicy', label: '매운맛', description: '핑계는 사절, 행동만' },
+];
 
 const App = () => {
   // --- 상태 관리 ---
   const [step, setStep] = useState('main'); // main, input, loading, result
   const [activity, setActivity] = useState('');
-  const [modes, setModes] = useState({ f: true, t: true });
-  const [loading, setLoading] = useState(false);
-  const [results, setResults] = useState({ f: '', t: '' });
+  const [modes, setModes] = useState({ f: false, t: false });
+  const [roastLevel, setRoastLevel] = useState('medium');
+  const [results, setResults] = useState({ f: '', t: '', action: '' });
   const [error, setError] = useState(null);
 
   const generateFeedback = async () => {
@@ -20,7 +26,7 @@ const App = () => {
       const response = await fetch('/api/feedback', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ activity }),
+        body: JSON.stringify({ activity, modes, roastLevel }),
       });
 
       if (!response.ok) throw new Error("API 호출 실패");
@@ -76,14 +82,15 @@ const App = () => {
         {step === 'input' && (
           <div className="max-w-2xl mx-auto py-12 space-y-10">
             <div className="space-y-4">
-              <label className="text-2xl font-bold text-slate-800 flex items-center gap-2">
+              <label htmlFor="activity" className="text-2xl font-bold text-slate-800 flex items-center gap-2">
                 <MessageCircle className="text-blue-500" /> 오늘 무엇을 하셨나요?
               </label>
               <textarea
+                id="activity"
                 value={activity}
                 onChange={(e) => setActivity(e.target.value)}
                 placeholder="예: 오늘 1시간 만에 해커톤 프로젝트를 완성해서 제출했다! 근데 운동을 못 갔다.."
-                className="w-full h-40 p-6 rounded-3xl bg-white border-2 border-slate-100 focus:border-pink-300 focus:ring-0 text-lg shadow-sm resize-none transition-all"
+                className="w-full h-40 p-6 rounded-2xl bg-white border-2 border-slate-100 focus:border-pink-400 focus:outline-none text-lg shadow-sm resize-none transition-all"
               />
             </div>
 
@@ -91,6 +98,8 @@ const App = () => {
               <label className="text-xl font-bold text-slate-800">피드백 모드 선택 (중복 가능)</label>
               <div className="grid grid-cols-2 gap-4">
                 <button
+                  type="button"
+                  aria-pressed={modes.f}
                   onClick={() => setModes(prev => ({ ...prev, f: !prev.f }))}
                   className={`p-6 rounded-2xl border-4 transition-all flex flex-col items-center gap-3 ${modes.f ? 'border-pink-400 bg-pink-50' : 'border-slate-100 bg-white opacity-50'}`}
                 >
@@ -98,6 +107,8 @@ const App = () => {
                   <span className={`font-bold text-lg ${modes.f ? 'text-pink-700' : 'text-slate-400'}`}>F 천사 (Toast)</span>
                 </button>
                 <button
+                  type="button"
+                  aria-pressed={modes.t}
                   onClick={() => setModes(prev => ({ ...prev, t: !prev.t }))}
                   className={`p-6 rounded-2xl border-4 transition-all flex flex-col items-center gap-3 ${modes.t ? 'border-slate-800 bg-slate-800 text-white' : 'border-slate-100 bg-white text-slate-400'}`}
                 >
@@ -107,7 +118,33 @@ const App = () => {
               </div>
             </div>
 
+            {modes.t && (
+              <fieldset className="space-y-4">
+                <legend className="text-xl font-bold text-slate-800">
+                  독설강도 <span className="text-sm font-medium text-slate-500">(해당 강도는 &apos;악마 피드백&apos;에만 적용됩니다!)</span>
+                </legend>
+                <div className="grid gap-3 sm:grid-cols-3">
+                  {ROAST_LEVELS.map((level) => {
+                    const selected = roastLevel === level.id;
+                    return (
+                      <button
+                        key={level.id}
+                        type="button"
+                        aria-pressed={selected}
+                        onClick={() => setRoastLevel(level.id)}
+                        className={`rounded-xl border-2 px-4 py-4 text-left transition-colors focus:outline-none focus:ring-2 focus:ring-orange-300 ${selected ? 'border-orange-500 bg-orange-50 text-slate-900' : 'border-slate-200 bg-white text-slate-500 hover:border-orange-200'}`}
+                      >
+                        <span className="block font-bold">{level.label}</span>
+                        <span className="mt-1 block text-sm">{level.description}</span>
+                      </button>
+                    );
+                  })}
+                </div>
+              </fieldset>
+            )}
+
             <button
+              type="button"
               disabled={!activity || (!modes.f && !modes.t)}
               onClick={generateFeedback}
               className="w-full py-5 bg-gradient-to-r from-pink-500 to-orange-500 text-white rounded-2xl text-2xl font-black shadow-lg disabled:opacity-30 hover:brightness-110 active:scale-95 transition-all"
@@ -131,12 +168,12 @@ const App = () => {
           <div className="max-w-4xl mx-auto py-8 space-y-8">
             <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-100">
               <p className="text-slate-400 text-sm font-bold uppercase tracking-widest mb-2">Your Activity</p>
-              <p className="text-xl font-medium text-slate-800">"{activity}"</p>
+              <p className="text-xl font-medium text-slate-800">&ldquo;{activity}&rdquo;</p>
             </div>
 
             <div className={`grid gap-6 ${modes.f && modes.t ? 'md:grid-cols-2' : 'grid-cols-1'}`}>
               {modes.f && (
-                <div className="bg-pink-50 border-2 border-pink-200 p-8 rounded-[2rem] space-y-4">
+                <div className="bg-pink-50 border-2 border-pink-200 p-8 rounded-2xl space-y-4">
                   <div className="flex items-center gap-2 text-pink-600">
                     <Heart fill="currentColor" /> <span className="font-black text-xl italic uppercase">Angel F</span>
                   </div>
@@ -144,7 +181,7 @@ const App = () => {
                 </div>
               )}
               {modes.t && (
-                <div className="bg-slate-900 border-2 border-slate-800 p-8 rounded-[2rem] space-y-4 text-white">
+                <div className="bg-slate-900 border-2 border-slate-800 p-8 rounded-2xl space-y-4 text-white">
                   <div className="flex items-center gap-2 text-orange-400">
                     <Flame fill="currentColor" /> <span className="font-black text-xl italic uppercase">Devil T</span>
                   </div>
@@ -153,7 +190,18 @@ const App = () => {
               )}
             </div>
 
+            {results.action && (
+              <section className="flex gap-4 rounded-2xl border-2 border-blue-100 bg-blue-50 p-6" aria-labelledby="action-title">
+                <div className="mt-0.5 rounded-lg bg-blue-600 p-2 text-white"><Target size={22} /></div>
+                <div>
+                  <h2 id="action-title" className="font-black text-slate-900">내일의 10분 미션</h2>
+                  <p className="mt-1 text-lg leading-relaxed text-slate-700">{results.action}</p>
+                </div>
+              </section>
+            )}
+
             <button
+              type="button"
               onClick={() => setStep('input')}
               className="w-full py-4 border-2 border-slate-200 text-slate-500 rounded-2xl text-lg font-bold hover:bg-slate-50 transition-colors"
             >
