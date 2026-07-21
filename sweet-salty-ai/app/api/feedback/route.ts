@@ -35,7 +35,7 @@ export async function POST(req: NextRequest) {
   const selectedRoastLevel = roastLevel in ROAST_INSTRUCTIONS ? roastLevel as keyof typeof ROAST_INSTRUCTIONS : 'medium';
   const rules = [
     selectedModes.f
-      ? 'f: 칭찬·응원만. 조언이나 개선점은 넣지 않는다.'
+      ? 'f: 칭찬·응원만. 조언이나 개선점은 넣지 않는다. 다정한 친구 같은 반말체로 쓰고 이모지를 넉넉히 섞는다.'
       : 'f: 빈 문자열.',
     selectedModes.t
       ? `t: 행동의 문제와 핑계를 냉철하게 지적한다(${ROAST_INSTRUCTIONS[selectedRoastLevel]}).`
